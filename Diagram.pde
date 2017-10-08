@@ -4,8 +4,8 @@ class Diagram {
   color node_color = #FFFFFF;
   PVector coulombForce;
   
-  float coulomb = 1.0;
-  float hooke = 1.0;
+  float coulomb = 0.1;
+  float hooke = .10;
   float dampening = 1.0; 
   float timeStep = 1.0;
    
@@ -19,7 +19,7 @@ class Diagram {
     return energy;
   }
   
-  PVector getTotalForces(Node node){
+  PVector getTotalForce(Node node){
     PVector coulomb = getCoulombForce(node);
     PVector hooke = getHookesForce(node);
     return PVector.add(coulomb, hooke);
@@ -100,12 +100,22 @@ class Diagram {
   }
    
   void updateNodePositions(){
-      for(int i = 0; i < node_list.size(); i++){   
+    for(int i = 0; i < node_list.size(); i++){   
         Node node = node_list.get(i);
-        //get the forces to get acceleration
-        //get the next position
-        //update the velocity
-        //add in some ability to add dampening to the mix
+        PVector totalForce = getTotalForce(node);
+        PVector acceleration = totalForce.div(node.mass);
+        node.acceleration = acceleration;
+        node.nextX = node.getNextX(timeStep);
+        node.nextY = node.getNextY(timeStep);
+        node.nextVelocity = node.getNextVelocity(timeStep);
+        //add in dampening
+    }
+    for(int i = 0; i < node_list.size(); i++){
+      //actually update the positions
+      Node node = node_list.get(i);
+      node.x = node.nextX;
+      node.y = node.nextY;
+      node.velocity = node.nextVelocity;
     }
   }
    

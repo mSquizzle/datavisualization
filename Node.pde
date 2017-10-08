@@ -4,6 +4,8 @@ class Node{
   ArrayList<Edge> connected_nodes;
   PVector acceleration;
   PVector velocity;
+  PVector nextVelocity;
+  float nextX, nextY;
  
 PVector getNextVelocity(float timeStep){
   //currentVelocity = integral of (a * dt) 
@@ -43,6 +45,9 @@ float getNextY(float timeStep){
       this.y = y;
       connected_nodes = new ArrayList<Edge>();
       velocity = new PVector();
+      nextVelocity = new PVector();
       acceleration = new PVector();
+      nextX = x;
+      nextY = y;
   }
 }
