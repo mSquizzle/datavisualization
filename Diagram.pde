@@ -4,10 +4,10 @@ class Diagram {
   color node_color = #FFFFFF;
   PVector coulombForce;
   
-  float coulombsConstant;
-  float hookeConstant;
-  float dampeningConstant; 
-  float timeStep;
+  float coulomb = 1.0;
+  float hooke = 1.0;
+  float dampening = 1.0; 
+  float timeStep = 1.0;
    
    
   float getTotalEnergy(){
@@ -22,29 +22,45 @@ class Diagram {
   PVector getTotalForces(Node node){
     PVector coulomb = getCoulombForce(node);
     PVector hooke = getHookesForce(node);
-    return coulomb.add(hooke);
+    return PVector.add(coulomb, hooke);
+  }
+  
+  PVector getDirection(Node node, Node otherNode){
+      float deltaX = node.x - otherNode.x;
+      float deltaY = node.y - otherNode.y;
+      PVector direction = new PVector(deltaX, deltaY);
+      return direction;
   }
    
   PVector getCoulombForce(Node node){
+    PVector totalForce = new PVector(0,0);
     for(int i = 0; i < node_list.size(); i++){
       Node otherNode = node_list.get(i); 
+      PVector direction = getDirection(node, otherNode);
       //f = c * q1 * q2 / distance^2
-      //use unit vectors for this for directionality
-      
+      float d = direction.mag();
+      float charge = node.mass * otherNode.mass;
+      float mag = coulomb * charge / (d * d);
+      direction.setMag(mag);
+      totalForce.add(direction);
     }
-    return new PVector(0,0);  
+    return totalForce;  
   }
   
   PVector getHookesForce(Node node){
-    PVector totalForce = new PVector();
+    PVector totalForce = new PVector(0,0);
     for(int i = 0; i < node.connected_nodes.size(); i++){
       Edge e = node.connected_nodes.get(i);
-      Node otherNode = e.node;    
+      Node otherNode = e.node;
       //f = -k/delta 
-      //also need unit vectors for this to get correct directionality
-      
+      PVector direction = getDirection(node, otherNode);
+      float distance = direction.mag();
+      //may need to swap around?
+      float delta = distance - e.length;
+      float mag = -hooke/delta;
+      direction.setMag(mag);
+      totalForce.add(direction);
     }
-    
     return totalForce;
   }
   
@@ -93,8 +109,6 @@ class Diagram {
     }
   }
    
-   
-   
   boolean mouseHover(Node node) {
     if(dist(mouseX, mouseY, node.x, node.y) <= (node.mass * 50)/2){
          return true; 
@@ -127,10 +141,6 @@ class Diagram {
       int id = Integer.parseInt(line[0]);
       int connect_id = Integer.parseInt(line[1]);
       int springLength = Integer.parseInt(line[2]);
-      println("ID "+id);
-      println("connect "+connect_id);
-      println("springLength "+springLength);
-      //add edge to node_list[node @ id] 
       Node startNode = getNodeById(id);
       Node endNode = getNodeById(connect_id);
       if(startNode != null && endNode != null){
